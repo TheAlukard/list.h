@@ -15,6 +15,8 @@
   #define DEFAULT_LIST_CAP 32
 #endif
 
+#define List(type) struct {type *items; size_t count; size_t capacity;}
+
 #define list_alloc(list)                                                    \
   do {                                                                      \
     (list)->capacity = DEFAULT_LIST_CAP;                                    \
