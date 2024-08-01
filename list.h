@@ -15,7 +15,19 @@
   #define DEFAULT_LIST_CAP 32
 #endif
 
-#define List(type) struct {type *items; size_t count; size_t capacity;}
+#define list_of(type) \
+  struct {\
+    type *items;\
+    size_t count;\
+    size_t capacity;\
+  }
+
+#define LIST_DEF(name, type) \
+  typedef struct {\
+    type *items;\
+    size_t count;\
+    size_t capacity;\
+  } name;\
 
 #define list_alloc(list)                                                    \
   do {                                                                      \
@@ -44,7 +56,7 @@
     (list)->count += 1;                                                                  \
   } while (0)
 
-INLINE void* GET_POPPED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap) 
+INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap) 
 {
     void *popped = NULL; 
 
@@ -62,7 +74,7 @@ INLINE void* GET_POPPED(void* *list_items, size_t type_size, size_t *list_count,
     return popped;
 }
 
-#define list_pop(list) (*(typeof(*(list)->items)*)GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+#define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
 
 #define list_copy(dest, src, start, count)                                   \
   do {                                                                       \
