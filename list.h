@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef _LIST_H_
-#define _LIST_H_
+#ifndef LIST__H__
+#define LIST__H__
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,14 +48,33 @@
     (list)->capacity = 0;                                                   \
   } while (0)
 
+#define list_accomodate(list)                                                             \
+  do {                                                                                    \
+    if ((list)->count >= (list)->capacity) {                                              \
+      (list)->capacity = (list)->capacity <= 0 ? DEFAULT_LIST_CAP : (list)->capacity * 2; \
+      (list)->items = realloc((list)->items, (list)->capacity * sizeof(*(list)->items));  \
+    }                                                                                     \
+  } while (0)
+
 #define list_push(list, item)                                                            \
   do {                                                                                   \
-    if ((list)->count >= (list)->capacity) {                                             \
-      (list)->capacity = (list)->capacity == 0 ? DEFAULT_LIST_CAP : (list)->capacity * 2;\
-      (list)->items = realloc((list)->items, (list)->capacity * sizeof(*(list)->items)); \
-    }                                                                                    \
+    list_accomodate(list);                                                               \
     (list)->items[(list)->count] = item;                                                 \
     (list)->count += 1;                                                                  \
+  } while (0)
+
+#define list_insert(list, item, index)                                                      \
+  do {                                                                                      \
+    if ((index) < 0) break;                                                                 \
+    if ((index) >= (list)->count) {                                                         \
+      list_push(list, item);                                                                \
+    }                                                                                       \
+    else {                                                                                  \
+      list_accomodate(list);                                                                \
+      memmove(&(list)->items[(index) + 1], &(list)->items[index], (list)->count - (index)); \
+      (list)->items[index] = item;                                                          \
+      (list)->count += 1;                                                                   \
+    }                                                                                       \
   } while (0)
 
 INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap) 
@@ -77,6 +96,19 @@ INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_c
 }
 
 #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+
+#define list_remove(list, index)                                                                  \
+  do {                                                                                            \
+    if ((list)->count <= 0 || index < 0) break;                                                   \
+    if ((index) < (list)->count - 1) {                                                            \
+      memmove(&(list)->items[index], &(list)->items[(index) + 1], (list)->count - ((index) + 1)); \
+    }                                                                                             \
+    (list)->count -= 1;                                                                           \
+    if ((list)->count < (list)->capacity / 3) {                                                   \
+      (list)->capacity /= 2;                                                                      \
+      (list)->items = realloc((list)->items, (list)->capacity * sizeof(*(list)->items));          \
+    }                                                                                             \
+  } while (0)
 
 #define list_copy(dest, src, start, count)                                   \
   do {                                                                       \
@@ -117,4 +149,4 @@ INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_c
 
 #define list_clear(list) ((list)->count = 0)
 
-#endif // _LIST_H_
+#endif // LIST__H__
