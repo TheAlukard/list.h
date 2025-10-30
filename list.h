@@ -76,11 +76,11 @@
     }                                                                                       \
   } while (0)
 
-#define list_from_arr(list, arr, arr_count)  \
-  do {                                       \
-    for (size_t i = 0; i < arr_count; i++) { \
-      list_push(list, (arr)[i]);             \
-    }                                        \
+#define list_from_arr(list, arr, arr_count)    \
+  do {                                         \
+    for (size_t i = 0; i < (arr_count); i++) { \
+      list_push(list, (arr)[i]);               \
+    }                                          \
   } while(0)
 
 INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap) 
