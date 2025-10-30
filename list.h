@@ -160,4 +160,6 @@ INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void
 
 #define list_clear(list) ((list)->count = 0)
 
+#undef INLINE
+
 #endif // LIST__H__
