@@ -41,10 +41,8 @@
 
 #define list_free(list)                                                     \
   do {                                                                      \
-    if ((list)->items != NULL) {                                            \
-      free((list)->items);                                                  \
-      (list)->items = NULL;                                                 \
-    }                                                                       \
+    free((list)->items);                                                    \
+    (list)->items = NULL;                                                   \
     (list)->count = 0;                                                      \
     (list)->capacity = 0;                                                   \
   } while (0)
