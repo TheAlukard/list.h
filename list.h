@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 #define INLINE __attribute__((always_inline)) static inline
 
@@ -109,6 +110,18 @@ INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_c
       (list)->items = realloc((list)->items, (list)->capacity * sizeof(*(list)->items));          \
     }                                                                                             \
   } while (0)
+
+INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void *item)
+{
+    for (size_t i = 0; i < count; i++) {
+        uint8_t *cur = ((uint8_t*)items) + (i * item_size);
+        if (memcmp(cur, item, item_size) == 0) return true;
+    }
+
+    return false;
+}
+
+#define list_contains(list, item) (LIST_CONTAINS_ITEM((list)->items, (list)->count, sizeof(*(list)->items), &(item)))
 
 #define list_copy(dest, src, start, count)                                   \
   do {                                                                       \
