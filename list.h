@@ -49,7 +49,7 @@
 
 #define list_accomodate(list)                                                             \
   do {                                                                                    \
-    if ((list)->count >= (list)->capacity) {                                              \
+    if ((list)->items == NULL || (list)->count >= (list)->capacity) {                     \
       (list)->capacity = (list)->capacity <= 0 ? DEFAULT_LIST_CAP : (list)->capacity * 2; \
       (list)->items = realloc((list)->items, (list)->capacity * sizeof(*(list)->items));  \
     }                                                                                     \
