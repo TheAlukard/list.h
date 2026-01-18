@@ -9,7 +9,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define INLINE __attribute__((always_inline)) static inline
+#define ALWAYS_INLINE __attribute__((always_inline)) static inline
 
 #define array_len(array) (sizeof(array) / sizeof((array)[0]))
 
@@ -77,7 +77,7 @@
     }                                          \
   } while(0)
 
-INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap) 
+ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap) 
 {
     void *popped = NULL; 
 
@@ -114,7 +114,7 @@ INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_c
     }                                                                                             \
   } while (0)
 
-INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void *item)
+ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void *item)
 {
     for (size_t i = 0; i < count; i++) {
         uint8_t *cur = ((uint8_t*)items) + (i * item_size);
@@ -167,6 +167,6 @@ INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void
 
 #define list_clear(list) ((list)->count = 0)
 
-#undef INLINE
+#undef ALWAYS_INLINE
 
 #endif // LIST__H__
