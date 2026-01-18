@@ -145,7 +145,6 @@ INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void
 #define list_transfer(dest, src)                                             \
   do {                                                                       \
     free((dest)->items);                                                     \
-    (dest)->items = NULL;                                                    \
     (dest)->items = (src)->items;                                            \
     (dest)->capacity = (src)->capacity;                                      \
     (dest)->count = (src)->count;                                            \
