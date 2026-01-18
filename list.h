@@ -95,7 +95,11 @@ INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_c
     return popped;
 }
 
-#define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+#if __STDC_VERSION__ >= 202311
+    #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+#else
+    #define list_pop(list, type) (*(type*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+#endif
 
 #define list_remove(list, index)                                                                  \
   do {                                                                                            \
