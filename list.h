@@ -26,9 +26,9 @@
 
 #define list_new(type) ((type){.items = NULL, .count = 0, .capacity = 0}) // kinda worthless, could be replaced with '{0}', But I'll keep it for now
 
-#define list_alloc(list)                                                    \
+#define list_alloc(list, cap)                                               \
   do {                                                                      \
-    (list)->capacity = DEFAULT_LIST_CAP;                                    \
+    (list)->capacity = (cap);                                               \
     (list)->count = 0;                                                      \
     (list)->items = malloc((list)->capacity * sizeof(*(list)->items));      \
   } while (0)
