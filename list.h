@@ -17,13 +17,6 @@
   #define DEFAULT_LIST_CAP 64
 #endif
 
-#define list_of(type) \
-  struct {\
-    type *items;\
-    size_t count;\
-    size_t capacity;\
-  }
-
 #define LIST_DEF(name, type) \
   typedef struct {\
     type *items;\
