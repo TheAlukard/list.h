@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define INLINE __attribute__((always_inline)) static inline
 
@@ -128,15 +129,20 @@ INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void
 
 #define list_contains(list, item) (LIST_CONTAINS_ITEM((list)->items, (list)->count, sizeof(*(list)->items), &(item)))
 
-#define list_copy(dest, src, start, count)                                   \
+#define list_copy(dest, src, start, num)                                     \
   do {                                                                       \
     if ((start) < 0) {                                                       \
       break;                                                                 \
     }                                                                        \
     size_t i = (start);                                                      \
     size_t j = 0;                                                            \
-    while (i < (count) && i < (src)->count && j < (dest)->count) {           \
-      (dest)->items[j] = (src)->items[i];                                    \
+    while (j < (num) && i < (src)->count) {                                  \
+      if (j >= (dest)->count) {                                              \
+        list_push(dest, (src)->items[i]);                                    \
+      }                                                                      \
+      else {                                                                 \
+        (dest)->items[j] = (src)->items[i];                                  \
+      }                                                                      \
       i += 1;                                                                \
       j += 1;                                                                \
     }                                                                        \
