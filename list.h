@@ -23,12 +23,21 @@
   #define DEFAULT_LIST_CAP 64
 #endif
 
-#define LIST_DEF(name, type) \
+#define LIST_STRUCT(name, type) \
   typedef struct {\
     type *items;\
     size_t count;\
     size_t capacity;\
   } name
+
+#define list_of(type) list__##type
+
+#define LIST_DEFINE(type) \
+  typedef struct {\
+    type *items;\
+    size_t count;\
+    size_t capacity;\
+  } list_of(type)
 
 #define list_alloc(list, cap)                                               \
   do {                                                                      \
