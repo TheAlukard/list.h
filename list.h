@@ -17,14 +17,6 @@
 
 #define C23 202311
 
-#if __STDC_VERSION__ >= C23
-    #define LIST_TYPE_OF(x) typeof(x)
-#elif defined(__GNUC__) || defined(__clang__)
-    #define LIST_TYPE_OF(x) __typeof__(x)
-#else
-    #warning "'LIST_TYPE_OF' macro only works on gcc, clang and stdC >= C23"
-#endif
-
 #define array_len(array) (sizeof(array) / sizeof((array)[0]))
 
 #ifndef DEFAULT_LIST_CAP
@@ -108,11 +100,14 @@ ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t 
     return popped;
 }
 
-#ifdef LIST_TYPE_OF
-    #define list_pop(list) (*(LIST_TYPE_OF(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+#if __STDC_VERSION__ >= C23
+    #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+#elif defined(__GNUC__) || defined(__clang__)
+    #define list_pop(list) (*(__typeof__(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
 #else
     #define list_pop(list, type) (*(type*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
 #endif
+
 
 #define list_remove(list, index)                                                                  \
   do {                                                                                            \
