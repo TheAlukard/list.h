@@ -30,8 +30,6 @@
     size_t capacity;\
   } name
 
-#define list_new(type) ((type){.items = NULL, .count = 0, .capacity = 0}) // kinda worthless, could be replaced with '{0}', But I'll keep it for now
-
 #define list_alloc(list, cap)                                               \
   do {                                                                      \
     (list)->capacity = (cap);                                               \
