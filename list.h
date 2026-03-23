@@ -18,11 +18,11 @@
 #define C23 202311
 
 #if __STDC_VERSION__ >= C23
-    #define TYPE_OF(x) typeof(x)
+    #define LIST_TYPE_OF(x) typeof(x)
 #elif defined(__GNUC__) || defined(__clang__)
-    #define TYPE_OF(x) __typeof__(x)
+    #define LIST_TYPE_OF(x) __typeof__(x)
 #else
-    #warn "'TYPE_OF' macro only works on gcc, clang and stdC >= C23"
+    #warning "'LIST_TYPE_OF' macro only works on gcc, clang and stdC >= C23"
 #endif
 
 #define array_len(array) (sizeof(array) / sizeof((array)[0]))
@@ -108,8 +108,8 @@ ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t 
     return popped;
 }
 
-#if __STDC_VERSION__ >= C23
-    #define list_pop(list) (*(TYPE_OF(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+#ifdef LIST_TYPE_OF
+    #define list_pop(list) (*(LIST_TYPE_OF(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
 #else
     #define list_pop(list, type) (*(type*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
 #endif
@@ -182,6 +182,5 @@ ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_siz
 
 #undef ALWAYS_INLINE
 #undef C23
-#undef TYPE_OF
 
 #endif // LIST__H__
