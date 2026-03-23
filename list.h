@@ -9,7 +9,21 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define ALWAYS_INLINE __attribute__((always_inline)) static inline
+#if defined(__GNUC__) || defined(__clang__)
+    #define ALWAYS_INLINE __attribute__((always_inline)) static inline
+#else
+    #define ALWAYS_INLINE static inline
+#endif
+
+#define C23 202311
+
+#if __STDC_VERSION__ >= C23
+    #define TYPE_OF(x) typeof(x)
+#elif defined(__GNUC__) || defined(__clang__)
+    #define TYPE_OF(x) __typeof__(x)
+#else
+    #warn "'TYPE_OF' macro only works on gcc, clang and stdC >= C23"
+#endif
 
 #define array_len(array) (sizeof(array) / sizeof((array)[0]))
 
@@ -64,7 +78,7 @@
     }                                                                                       \
     else {                                                                                  \
       list_accomodate(list);                                                                \
-      memmove(&(list)->items[(index) + 1], &(list)->items[index], (list)->count - (index)); \
+      memmove(&(list)->items[(index) + 1], &(list)->items[index], sizeof(*(list)->items) * ((list)->count - (index))); \
       (list)->items[index] = item;                                                          \
       (list)->count += 1;                                                                   \
     }                                                                                       \
@@ -89,14 +103,13 @@ ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t 
     }
 
     *list_count -= 1;
-
     popped = (uint8_t*)(*list_items) + ((*list_count) * type_size);
 
     return popped;
 }
 
-#if __STDC_VERSION__ >= 202311
-    #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+#if __STDC_VERSION__ >= C23
+    #define list_pop(list) (*(TYPE_OF(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
 #else
     #define list_pop(list, type) (*(type*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
 #endif
@@ -105,7 +118,7 @@ ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t 
   do {                                                                                            \
     if ((list)->count <= 0 || index < 0) break;                                                   \
     if ((index) < (list)->count - 1) {                                                            \
-      memmove(&(list)->items[index], &(list)->items[(index) + 1], (list)->count - ((index) + 1)); \
+      memmove(&(list)->items[index], &(list)->items[(index) + 1], sizeof(*(list)->items) * ((list)->count - ((index) + 1))); \
     }                                                                                             \
     (list)->count -= 1;                                                                           \
     if ((list)->count < (list)->capacity / 3) {                                                   \
@@ -168,5 +181,7 @@ ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_siz
 #define list_clear(list) ((list)->count = 0)
 
 #undef ALWAYS_INLINE
+#undef C23
+#undef TYPE_OF
 
 #endif // LIST__H__
