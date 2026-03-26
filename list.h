@@ -108,27 +108,36 @@ ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t 
     return popped;
 }
 
+ALWAYS_INLINE void* LIST_GET_REMOVED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap, size_t index) 
+{
+    void *removed = NULL; 
+
+    if (*list_count == 0 || index >= *list_count) return removed;
+
+    if (*list_count < (*list_cap) / 3) {
+        *list_cap /= 2;
+        *list_items = realloc(*list_items, (*list_cap) * type_size);
+    }
+
+    *list_count -= 1;
+    removed = (uint8_t*)(*list_items) + ((index) * type_size);
+    void *last_addr = (uint8_t*)(*list_items) + ((*list_count) * type_size);
+
+    memmove(removed, last_addr, type_size);
+
+    return removed;
+}
+
 #if __STDC_VERSION__ >= C23
     #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+    #define list_remove(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity, index))
 #elif defined(__GNUC__) || defined(__clang__)
     #define list_pop(list) (*(__typeof__(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+    #define list_remove(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity, index))
 #else
     #define list_pop(list, type) (*(type*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
+    #define list_remove(list, index, type) (*(type(*(list)->items)*)LIST_GET_REMOVED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity, index))
 #endif
-
-
-#define list_remove(list, index)                                                                                                   \
-    do {                                                                                                                           \
-        if ((list)->count <= 0 || index < 0) break;                                                                                \
-        if ((index) < (list)->count - 1) {                                                                                         \
-            memmove(&(list)->items[index], &(list)->items[(index) + 1], sizeof(*(list)->items) * ((list)->count - ((index) + 1))); \
-        }                                                                                                                          \
-        (list)->count -= 1;                                                                                                        \
-        if ((list)->count < (list)->capacity / 3) {                                                                                \
-            (list)->capacity /= 2;                                                                                                 \
-            (list)->items = realloc((list)->items, (list)->capacity * sizeof(*(list)->items));                                     \
-        }                                                                                                                          \
-    } while (0)
 
 ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void *item)
 {
