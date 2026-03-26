@@ -83,12 +83,12 @@
         }                                                                                                                    \
     } while (0)
 
-#define list_from_arr(list, arr, arr_count)        \
-    do {                                           \
-        if (!(arr) || (arr_count) <= 0) break;     \
-        list_alloc(list, arr_count);               \
-        memcpy((list)->items, arr, arr_count);     \
-        (list)->count += (arr_count);              \
+#define list_from_arr(list, arr, arr_count)                               \
+    do {                                                                  \
+        if (!(arr) || (arr_count) <= 0) break;                            \
+        list_alloc(list, arr_count);                                      \
+        memcpy((list)->items, arr, (arr_count) * sizeof(*(list)->items)); \
+        (list)->count += (arr_count);                                     \
     } while(0)
 
 ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap) 
