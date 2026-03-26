@@ -20,75 +20,75 @@
 #define array_len(array) (sizeof(array) / sizeof((array)[0]))
 
 #ifndef DEFAULT_LIST_CAP
-  #define DEFAULT_LIST_CAP 64
+    #define DEFAULT_LIST_CAP 64
 #endif
 
 #define LIST_STRUCT(name, type) \
-  typedef struct {\
-    type *items;\
-    size_t count;\
-    size_t capacity;\
-  } name
+    typedef struct {            \
+        type *items;            \
+        size_t count;           \
+        size_t capacity;        \
+    } name
 
 #define list_of(type) list__##type
 
 #define LIST_DEFINE(type) \
-  typedef struct {\
-    type *items;\
-    size_t count;\
-    size_t capacity;\
-  } list_of(type)
+    typedef struct {      \
+        type *items;      \
+        size_t count;     \
+        size_t capacity;  \
+    } list_of(type)
 
-#define list_alloc(list, cap)                                               \
-  do {                                                                      \
-    (list)->capacity = (cap);                                               \
-    (list)->count = 0;                                                      \
-    (list)->items = malloc((list)->capacity * sizeof(*(list)->items));      \
-  } while (0)
+#define list_alloc(list, cap)                                              \
+    do {                                                                   \
+        (list)->capacity = (cap);                                          \
+        (list)->count = 0;                                                 \
+        (list)->items = malloc((list)->capacity * sizeof(*(list)->items)); \
+    } while (0)
 
-#define list_free(list)                                                     \
-  do {                                                                      \
-    free((list)->items);                                                    \
-    (list)->items = NULL;                                                   \
-    (list)->count = 0;                                                      \
-    (list)->capacity = 0;                                                   \
-  } while (0)
+#define list_free(list)       \
+    do {                      \
+        free((list)->items);  \
+        (list)->items = NULL; \
+        (list)->count = 0;    \
+        (list)->capacity = 0; \
+    } while (0)
 
-#define list_accomodate(list)                                                             \
-  do {                                                                                    \
-    if ((list)->items == NULL || (list)->count >= (list)->capacity) {                     \
-      (list)->capacity = (list)->capacity <= 0 ? DEFAULT_LIST_CAP : (list)->capacity * 2; \
-      (list)->items = realloc((list)->items, (list)->capacity * sizeof(*(list)->items));  \
-    }                                                                                     \
-  } while (0)
+#define list_accomodate(list)                                                                   \
+    do {                                                                                        \
+        if ((list)->items == NULL || (list)->count >= (list)->capacity) {                       \
+            (list)->capacity = (list)->capacity <= 0 ? DEFAULT_LIST_CAP : (list)->capacity * 2; \
+            (list)->items = realloc((list)->items, (list)->capacity * sizeof(*(list)->items));  \
+        }                                                                                       \
+    } while (0)
 
-#define list_push(list, item)                                                            \
-  do {                                                                                   \
-    list_accomodate(list);                                                               \
-    (list)->items[(list)->count] = item;                                                 \
-    (list)->count += 1;                                                                  \
-  } while (0)
+#define list_push(list, item)                \
+    do {                                     \
+        list_accomodate(list);               \
+        (list)->items[(list)->count] = item; \
+        (list)->count += 1;                  \
+    } while (0)
 
-#define list_insert(list, item, index)                                                      \
-  do {                                                                                      \
-    if ((index) < 0) break;                                                                 \
-    if ((index) >= (list)->count) {                                                         \
-      list_push(list, item);                                                                \
-    }                                                                                       \
-    else {                                                                                  \
-      list_accomodate(list);                                                                \
-      memmove(&(list)->items[(index) + 1], &(list)->items[index], sizeof(*(list)->items) * ((list)->count - (index))); \
-      (list)->items[index] = item;                                                          \
-      (list)->count += 1;                                                                   \
-    }                                                                                       \
-  } while (0)
+#define list_insert(list, item, index)                                                                                       \
+    do {                                                                                                                     \
+        if ((index) < 0) break;                                                                                              \
+        if ((index) >= (list)->count) {                                                                                      \
+            list_push(list, item);                                                                                           \
+        }                                                                                                                    \
+        else {                                                                                                               \
+            list_accomodate(list);                                                                                           \
+            memmove(&(list)->items[(index) + 1], &(list)->items[index], sizeof(*(list)->items) * ((list)->count - (index))); \
+            (list)->items[index] = item;                                                                                     \
+            (list)->count += 1;                                                                                              \
+        }                                                                                                                    \
+    } while (0)
 
-#define list_from_arr(list, arr, arr_count)    \
-  do {                                         \
-    for (size_t i = 0; i < (arr_count); i++) { \
-      list_push(list, (arr)[i]);               \
-    }                                          \
-  } while(0)
+#define list_from_arr(list, arr, arr_count)        \
+    do {                                           \
+        for (size_t i = 0; i < (arr_count); i++) { \
+            list_push(list, (arr)[i]);             \
+        }                                          \
+    } while(0)
 
 ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap) 
 {
@@ -116,18 +116,18 @@ ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t 
 #endif
 
 
-#define list_remove(list, index)                                                                  \
-  do {                                                                                            \
-    if ((list)->count <= 0 || index < 0) break;                                                   \
-    if ((index) < (list)->count - 1) {                                                            \
-      memmove(&(list)->items[index], &(list)->items[(index) + 1], sizeof(*(list)->items) * ((list)->count - ((index) + 1))); \
-    }                                                                                             \
-    (list)->count -= 1;                                                                           \
-    if ((list)->count < (list)->capacity / 3) {                                                   \
-      (list)->capacity /= 2;                                                                      \
-      (list)->items = realloc((list)->items, (list)->capacity * sizeof(*(list)->items));          \
-    }                                                                                             \
-  } while (0)
+#define list_remove(list, index)                                                                                                   \
+    do {                                                                                                                           \
+        if ((list)->count <= 0 || index < 0) break;                                                                                \
+        if ((index) < (list)->count - 1) {                                                                                         \
+            memmove(&(list)->items[index], &(list)->items[(index) + 1], sizeof(*(list)->items) * ((list)->count - ((index) + 1))); \
+        }                                                                                                                          \
+        (list)->count -= 1;                                                                                                        \
+        if ((list)->count < (list)->capacity / 3) {                                                                                \
+            (list)->capacity /= 2;                                                                                                 \
+            (list)->items = realloc((list)->items, (list)->capacity * sizeof(*(list)->items));                                     \
+        }                                                                                                                          \
+    } while (0)
 
 ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void *item)
 {
@@ -141,44 +141,44 @@ ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_siz
 
 #define list_contains(list, item) (LIST_CONTAINS_ITEM((list)->items, (list)->count, sizeof(*(list)->items), &(item)))
 
-#define list_copy(dest, src, start, num)                                     \
-  do {                                                                       \
-    if ((start) < 0) {                                                       \
-      break;                                                                 \
-    }                                                                        \
-    size_t i = (start);                                                      \
-    size_t j = 0;                                                            \
-    while (j < (num) && i < (src)->count) {                                  \
-      if (j >= (dest)->count) {                                              \
-        list_push(dest, (src)->items[i]);                                    \
-      }                                                                      \
-      else {                                                                 \
-        (dest)->items[j] = (src)->items[i];                                  \
-      }                                                                      \
-      i += 1;                                                                \
-      j += 1;                                                                \
-    }                                                                        \
-  } while (0)
+#define list_copy(dest, src, start, num)            \
+    do {                                            \
+        if ((start) < 0) {                          \
+            break;                                  \
+        }                                           \
+        size_t i = (start);                         \
+        size_t j = 0;                               \
+        while (j < (num) && i < (src)->count) {     \
+            if (j >= (dest)->count) {               \
+                list_push(dest, (src)->items[i]);   \
+            }                                       \
+            else {                                  \
+                (dest)->items[j] = (src)->items[i]; \
+            }                                       \
+            i += 1;                                 \
+            j += 1;                                 \
+        }                                           \
+    } while (0)
 
-#define list_transfer(dest, src)                                             \
-  do {                                                                       \
-    free((dest)->items);                                                     \
-    (dest)->items = (src)->items;                                            \
-    (dest)->capacity = (src)->capacity;                                      \
-    (dest)->count = (src)->count;                                            \
-  } while (0)
+#define list_transfer(dest, src)            \
+    do {                                    \
+        free((dest)->items);                \
+        (dest)->items = (src)->items;       \
+        (dest)->capacity = (src)->capacity; \
+        (dest)->count = (src)->count;       \
+    } while (0)
 
-#define list_print(list, format)                                             \
-  do {                                                                       \
-    printf("[");                                                             \
-    for (size_t i = 0; i < (list)->count; i++) {                             \
-      printf(format, (list)->items[i]);                                      \
-      if (i < (list)->count - 1) {                                           \
-        printf(", ");                                                        \
-      }                                                                      \
-    }                                                                        \
-    printf("]\n");                                                           \
-  } while (0)
+#define list_print(list, format)                     \
+    do {                                             \
+        printf("[");                                 \
+        for (size_t i = 0; i < (list)->count; i++) { \
+            printf(format, (list)->items[i]);        \
+            if (i < (list)->count - 1) {             \
+                printf(", ");                        \
+            }                                        \
+        }                                            \
+        printf("]\n");                               \
+    } while (0)
 
 #define list_clear(list) ((list)->count = 0)
 
