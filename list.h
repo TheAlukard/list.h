@@ -97,6 +97,8 @@ typedef struct {
         (list)->count += (arr_count);                                     \
     } while(0)
 
+#define ptr_offset(ptr, idx, typesize) ((uint8_t*)(ptr) + ((idx) * (typesize)))
+
 ALWAYS_INLINE void* LIST_GET_POPPED(void *list_ptr, size_t type_size) 
 {
     void *popped = NULL;
@@ -110,7 +112,7 @@ ALWAYS_INLINE void* LIST_GET_POPPED(void *list_ptr, size_t type_size)
     }
 
     list->count -= 1;
-    popped = (uint8_t*)(list->items) + (list->count * type_size);
+    popped = ptr_offset(list->items, list->count, type_size);
 
     return popped;
 }
@@ -130,8 +132,8 @@ ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_s
 
     uint8_t temp[type_size];
     list->count -= 1;
-    removed = (uint8_t*)(list->items) + ((index) * type_size);
-    void *last_addr = (uint8_t*)(list->items) + ((list->count) * type_size);
+    removed = ptr_offset(list->items, index, type_size);
+    void *last_addr = ptr_offset(list->items, list->count, type_size);
 
     memmove(temp, removed, type_size);
     memmove(removed, last_addr, type_size);
@@ -204,6 +206,7 @@ ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_siz
 
 #define list_clear(list) ((list)->count = 0)
 
+#undef ptr_offset
 #undef ALWAYS_INLINE
 #undef C23
 
