@@ -39,6 +39,12 @@
         size_t capacity;  \
     } list_of(type)
 
+typedef struct {
+    void *items;
+    size_t count;
+    size_t capacity;
+} LIST_BLUEPRINT;
+
 #define list_alloc(list, cap)                                              \
     do {                                                                   \
         (list)->capacity = (cap);                                          \
