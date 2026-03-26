@@ -110,7 +110,7 @@ ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t 
 
 ALWAYS_INLINE void* LIST_GET_REMOVED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap, size_t index) 
 {
-    void *removed = NULL; 
+    void *removed = NULL;
 
     if (*list_count == 0 || index >= *list_count) return removed;
 
@@ -119,13 +119,16 @@ ALWAYS_INLINE void* LIST_GET_REMOVED(void* *list_items, size_t type_size, size_t
         *list_items = realloc(*list_items, (*list_cap) * type_size);
     }
 
+    uint8_t temp[type_size];
     *list_count -= 1;
     removed = (uint8_t*)(*list_items) + ((index) * type_size);
     void *last_addr = (uint8_t*)(*list_items) + ((*list_count) * type_size);
 
+    memmove(temp, removed, type_size);
     memmove(removed, last_addr, type_size);
+    memmove(last_addr, temp, type_size);
 
-    return removed;
+    return last_addr;
 }
 
 #if __STDC_VERSION__ >= C23
