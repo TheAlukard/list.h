@@ -15,7 +15,8 @@
     #define ALWAYS_INLINE static inline
 #endif
 
-#define C23 202311
+#define C23 202311L
+#define C11 201112L
 
 #define array_len(array) (sizeof(array) / sizeof((array)[0]))
 
@@ -207,5 +208,6 @@ ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_siz
 #undef ptr_offset
 #undef ALWAYS_INLINE
 #undef C23
+#undef C11
 
 #endif // LIST__H__
