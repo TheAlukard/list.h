@@ -23,6 +23,12 @@
     #define DEFAULT_LIST_CAP 64
 #endif
 
+typedef struct {
+    void *items;
+    size_t count;
+    size_t capacity;
+} LIST_BLUEPRINT;
+
 #define LIST_STRUCT(name, type) \
     typedef struct {            \
         type *items;            \
@@ -38,12 +44,6 @@
         size_t count;     \
         size_t capacity;  \
     } list_of(type)
-
-typedef struct {
-    void *items;
-    size_t count;
-    size_t capacity;
-} LIST_BLUEPRINT;
 
 #define list_alloc(list, cap)                                              \
     do {                                                                   \
@@ -97,38 +97,41 @@ typedef struct {
         (list)->count += (arr_count);                                     \
     } while(0)
 
-ALWAYS_INLINE void* LIST_GET_POPPED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap) 
+ALWAYS_INLINE void* LIST_GET_POPPED(void *list_ptr, size_t type_size) 
 {
-    void *popped = NULL; 
+    void *popped = NULL;
+    LIST_BLUEPRINT *list = (LIST_BLUEPRINT*)list_ptr;
 
-    if (*list_count == 0) return popped;
+    if (list->count == 0) return popped;
 
-    if (*list_count < (*list_cap) / 3) {
-        *list_cap /= 2;
-        *list_items = realloc(*list_items, (*list_cap) * type_size);
+    if (list->count < list->capacity / 3) {
+        list->capacity /= 2;
+        list->items = realloc(list->items, list->capacity * type_size);
     }
 
-    *list_count -= 1;
-    popped = (uint8_t*)(*list_items) + ((*list_count) * type_size);
+    list->count -= 1;
+    popped = (uint8_t*)(list->items) + (list->count * type_size);
 
     return popped;
 }
 
-ALWAYS_INLINE void* LIST_GET_REMOVED(void* *list_items, size_t type_size, size_t *list_count, size_t *list_cap, size_t index) 
+ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_size) 
 {
     void *removed = NULL;
 
-    if (*list_count == 0 || index >= *list_count) return removed;
+    LIST_BLUEPRINT *list = (LIST_BLUEPRINT*)list_ptr;
 
-    if (*list_count < (*list_cap) / 3) {
-        *list_cap /= 2;
-        *list_items = realloc(*list_items, (*list_cap) * type_size);
+    if (list->count == 0 || index >= list->count) return removed;
+
+    if (list->count < list->capacity / 3) {
+        list->capacity /= 2;
+        list->items = realloc(list->items, list->capacity * type_size);
     }
 
     uint8_t temp[type_size];
-    *list_count -= 1;
-    removed = (uint8_t*)(*list_items) + ((index) * type_size);
-    void *last_addr = (uint8_t*)(*list_items) + ((*list_count) * type_size);
+    list->count -= 1;
+    removed = (uint8_t*)(list->items) + ((index) * type_size);
+    void *last_addr = (uint8_t*)(list->items) + ((list->count) * type_size);
 
     memmove(temp, removed, type_size);
     memmove(removed, last_addr, type_size);
@@ -138,14 +141,14 @@ ALWAYS_INLINE void* LIST_GET_REMOVED(void* *list_items, size_t type_size, size_t
 }
 
 #if __STDC_VERSION__ >= C23
-    #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
-    #define list_remove(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity, index))
+    #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
+    #define list_remove(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items)))
 #elif defined(__GNUC__) || defined(__clang__)
-    #define list_pop(list) (*(__typeof__(*(list)->items)*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
-    #define list_remove(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity, index))
+    #define list_pop(list) (*(__typeof__(*(list)->items)*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
+    #define list_remove(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items)))
 #else
-    #define list_pop(list, type) (*(type*)LIST_GET_POPPED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity))
-    #define list_remove(list, index, type) (*(type(*(list)->items)*)LIST_GET_REMOVED((void*)(&(list)->items), sizeof(*(list)->items), &(list)->count, &(list)->capacity, index))
+    #define list_pop(list, type) (*(type(*(list)->items)*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
+    #define list_remove(list, index, type) (*(type(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items)))
 #endif
 
 ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void *item)
