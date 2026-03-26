@@ -131,14 +131,14 @@ ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_s
     }
 
     uint8_t temp[type_size];
+    size_t move_count = list->count - (index + 1);
     list->count -= 1;
     removed = ptr_offset(list->items, index, type_size);
     void *last_addr = ptr_offset(list->items, list->count, type_size);
     memmove(temp, removed, type_size);
 
-    if (ordered) {
-        if (index + 1 < list->count)
-            memmove(removed, (uint8_t*)removed + type_size, type_size * (list->count - (index + 1)));
+    if (ordered && move_count > 0) {
+        memmove(removed, (uint8_t*)removed + type_size, type_size * move_count);
     }
     else {
         memmove(removed, last_addr, type_size);
