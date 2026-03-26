@@ -117,7 +117,7 @@ ALWAYS_INLINE void* LIST_GET_POPPED(void *list_ptr, size_t type_size)
     return popped;
 }
 
-ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_size) 
+ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_size, bool ordered)
 {
     void *removed = NULL;
 
@@ -134,9 +134,15 @@ ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_s
     list->count -= 1;
     removed = ptr_offset(list->items, index, type_size);
     void *last_addr = ptr_offset(list->items, list->count, type_size);
-
     memmove(temp, removed, type_size);
-    memmove(removed, last_addr, type_size);
+
+    if (ordered) {
+        if (index + 1 < list->count)
+            memmove(removed, (uint8_t*)removed + type_size, type_size * (list->count - (index + 1)));
+    }
+    else {
+        memmove(removed, last_addr, type_size);
+    }
     memmove(last_addr, temp, type_size);
 
     return last_addr;
@@ -144,13 +150,16 @@ ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_s
 
 #if __STDC_VERSION__ >= C23
     #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
-    #define list_remove(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items)))
+    #define list_remove(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
+    #define list_remove_order(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
 #elif defined(__GNUC__) || defined(__clang__)
     #define list_pop(list) (*(__typeof__(*(list)->items)*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
-    #define list_remove(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items)))
+    #define list_remove(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
+    #define list_remove_order(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
 #else
     #define list_pop(list, type) (*(type(*(list)->items)*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
-    #define list_remove(list, index, type) (*(type(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items)))
+    #define list_remove(list, index, type) (*(type(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
+    #define list_remove_order(list, index) (*(type(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
 #endif
 
 ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void *item)
