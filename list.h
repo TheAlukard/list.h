@@ -152,17 +152,17 @@ ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_s
     #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
     #define list_remove(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
     #define list_remove_order(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
-    #define list_foreach(list) for (typeof(*(list)->items) *iter = (list)->items; iter < &(list)->items[list->count]; iter++)
+    #define list_foreach(list) for (typeof((list)->items) iter = (list)->items; iter < &(list)->items[(list)->count]; iter++)
 #elif defined(__GNUC__) || defined(__clang__)
     #define list_pop(list) (*(__typeof__(*(list)->items)*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
     #define list_remove(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
     #define list_remove_order(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
-    #define list_foreach(list) for (__typeof__(*(list)->items) *iter = (list)->items; iter < &(list)->items[list->count]; iter++)
+    #define list_foreach(list) for (__typeof__((list)->items) iter = (list)->items; iter < &(list)->items[(list)->count]; iter++)
 #else
     #define list_pop(list, type) (*(type*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
     #define list_remove(list, index, type) (*(type*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
     #define list_remove_order(list, index) (*(type*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
-    #define list_foreach(list, type) for (type *iter = (list)->items; iter < &(list)->items[list->count]; iter++)
+    #define list_foreach(list, type) for (type *iter = (list)->items; iter < &(list)->items[(list)->count]; iter++)
 #endif
 
 ALWAYS_INLINE bool LIST_CONTAINS_ITEM(void *items, size_t count, size_t item_size, void *item)
