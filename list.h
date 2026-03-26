@@ -99,24 +99,6 @@ typedef struct {
 
 #define ptr_offset(ptr, idx, typesize) ((uint8_t*)(ptr) + ((idx) * (typesize)))
 
-ALWAYS_INLINE void* LIST_GET_POPPED(void *list_ptr, size_t type_size) 
-{
-    void *popped = NULL;
-    LIST_BLUEPRINT *list = (LIST_BLUEPRINT*)list_ptr;
-
-    if (list->count == 0) return popped;
-
-    if (list->count < list->capacity / 3) {
-        list->capacity /= 2;
-        list->items = realloc(list->items, list->capacity * type_size);
-    }
-
-    list->count -= 1;
-    popped = ptr_offset(list->items, list->count, type_size);
-
-    return popped;
-}
-
 ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_size, bool ordered)
 {
     void *removed = NULL;
@@ -130,36 +112,39 @@ ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_s
         list->items = realloc(list->items, list->capacity * type_size);
     }
 
-    uint8_t temp[type_size];
     size_t move_count = list->count - (index + 1);
     list->count -= 1;
     removed = ptr_offset(list->items, index, type_size);
     void *last_addr = ptr_offset(list->items, list->count, type_size);
-    memmove(temp, removed, type_size);
 
     if (ordered && move_count > 0) {
+        uint8_t temp[type_size];
+        memmove(temp, removed, type_size);
         memmove(removed, (uint8_t*)removed + type_size, type_size * move_count);
+        memmove(last_addr, temp, type_size);
     }
-    else {
+    else if (move_count > 0) {
+        uint8_t temp[type_size];
+        memmove(temp, removed, type_size);
         memmove(removed, last_addr, type_size);
+        memmove(last_addr, temp, type_size);
     }
-    memmove(last_addr, temp, type_size);
 
     return last_addr;
 }
 
 #if __STDC_VERSION__ >= C23
-    #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
+    #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, (list)->count - 1, sizeof(*(list)->items), false))
     #define list_remove(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
     #define list_remove_order(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
     #define list_foreach(list) for (typeof((list)->items) iter = (list)->items; iter < &(list)->items[(list)->count]; iter++)
 #elif defined(__GNUC__) || defined(__clang__)
-    #define list_pop(list) (*(__typeof__(*(list)->items)*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
+    #define list_pop(list) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, (list)->count - 1, sizeof(*(list)->items), false))
     #define list_remove(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
     #define list_remove_order(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
     #define list_foreach(list) for (__typeof__((list)->items) iter = (list)->items; iter < &(list)->items[(list)->count]; iter++)
 #else
-    #define list_pop(list, type) (*(type*)LIST_GET_POPPED(list, sizeof(*(list)->items)))
+    #define list_pop(list, type) (*(type*)LIST_GET_REMOVED(list, (list)->count - 1, sizeof(*(list)->items), false))
     #define list_remove(list, index, type) (*(type*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
     #define list_remove_order(list, index) (*(type*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
     #define list_foreach(list, type) for (type *iter = (list)->items; iter < &(list)->items[(list)->count]; iter++)
