@@ -134,15 +134,16 @@ ALWAYS_INLINE void* LIST_GET_REMOVED(void* list_ptr, size_t index, size_t type_s
 }
 
 #if __STDC_VERSION__ >= C23
-    #define list_pop(list) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, (list)->count - 1, sizeof(*(list)->items), false))
-    #define list_remove(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
-    #define list_remove_order(list, index) (*(typeof(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
-    #define list_foreach(list) for (typeof((list)->items) iter = (list)->items; iter < &(list)->items[(list)->count]; iter++)
+    #define TYPE_OF(T) typeof(T)
 #elif defined(__GNUC__) || defined(__clang__)
-    #define list_pop(list) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, (list)->count - 1, sizeof(*(list)->items), false))
-    #define list_remove(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
-    #define list_remove_order(list, index) (*(__typeof__(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
-    #define list_foreach(list) for (__typeof__((list)->items) iter = (list)->items; iter < &(list)->items[(list)->count]; iter++)
+    #define TYPE_OF(T) __typeof__(T)
+#endif
+
+#ifdef TYPE_OF
+    #define list_pop(list) (*(TYPE_OF(*(list)->items)*)LIST_GET_REMOVED(list, (list)->count - 1, sizeof(*(list)->items), false))
+    #define list_remove(list, index) (*(TYPE_OF(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
+    #define list_remove_order(list, index) (*(TYPE_OF(*(list)->items)*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), true))
+    #define list_foreach(list) for (TYPE_OF((list)->items) iter = (list)->items; iter < &(list)->items[(list)->count]; iter++)
 #else
     #define list_pop(list, type) (*(type*)LIST_GET_REMOVED(list, (list)->count - 1, sizeof(*(list)->items), false))
     #define list_remove(list, index, type) (*(type*)LIST_GET_REMOVED(list, index, sizeof(*(list)->items), false))
